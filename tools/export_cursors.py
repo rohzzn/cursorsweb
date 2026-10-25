@@ -147,14 +147,38 @@ def read_ani(data):
 
 
 def pick(images, size):
-    """The image nearest the size (preferring larger), scaled to it, with its hotspot scaled too."""
-    best = min(images, key=lambda e: (abs(e[0].width - size), -e[0].width))
-    img, hx, hy = best
-    if img.width != size:
+    """The image for a size, with its hotspot: the exact size if the cursor has it, else a smaller one blown up by
+    whole pixels (sharp, never soft), else the nearest larger one scaled down. The last value says it was blown up."""
+    exact = [e for e in images if e[0].width == size]
+    whole = sorted((e for e in images if e[0].width < size and size % e[0].width == 0), key=lambda e: -e[0].width)
+    larger = sorted((e for e in images if e[0].width > size), key=lambda e: e[0].width)
+    img, hx, hy = (exact or whole or larger or sorted(images, key=lambda e: -e[0].width))[0]
+    if img.width > size:
         k = size / img.width
         img = img.resize((size, round(img.height * k)), Image.LANCZOS)
-        hx, hy = round(hx * k), round(hy * k)
-    return img, min(hx, size - 1), min(hy, img.height - 1)
+        return img, min(round(hx * k), size - 1), min(round(hy * k), img.height - 1), False
+    if img.width < size:
+        k = size // img.width
+        big = img.resize((img.width * k, img.height * k), Image.NEAREST)
+        img = Image.new("RGBA", (size, max(size, big.height)))
+        img.paste(big, (0, 0))
+        return img, min(hx * k, size - 1), min(hy * k, img.height - 1), k > 1
+    return img, min(hx, size - 1), min(hy, img.height - 1), False
+
+
+def centred(frames, size):
+    """Frames moved so what they draw sits in the middle of a size x size square, all by the same amount."""
+    boxes = [f.getbbox() for f in frames if f.getbbox()]
+    if not boxes:
+        return frames
+    left, top = min(x[0] for x in boxes), min(x[1] for x in boxes)
+    right, bottom = max(x[2] for x in boxes), max(x[3] for x in boxes)
+    out = []
+    for f in frames:
+        square = Image.new("RGBA", (size, size))
+        square.paste(f.crop((left, top, right, bottom)), ((size - (right - left)) // 2, (size - (bottom - top)) // 2))
+        out.append(square)
+    return out
 
 
 def frames_of(data, name):
@@ -168,18 +192,25 @@ def frames_of(data, name):
 
 def export_role(data, name, outdir, role, sizes):
     decoded, steps = frames_of(data, name)
-    files, hot = {}, None
+    files, hot, blocky = {}, None, set()
     for size, prefix in sizes:
-        names = []
-        for i, images in enumerate(decoded):
-            img, hx, hy = pick(images, size)
+        imgs = []
+        for images in decoded:
+            img, hx, hy, scaled_up = pick(images, size)
             if hot is None and prefix == role:
                 hot = (hx, hy)
+            if scaled_up:
+                blocky.add(prefix)
+            imgs.append(img)
+        if prefix == "preview":
+            imgs = centred(imgs, size)  # the hotspot doesn't matter on a card, being in the middle does
+        names = []
+        for i, img in enumerate(imgs):
             fname = f"{prefix}-{i}.png"
             img.save(outdir / fname, optimize=True)
             names.append(fname)
         files[prefix] = names
-    return files, steps, hot
+    return files, steps, hot, blocky
 
 
 def community_files(slug):
@@ -219,11 +250,12 @@ def main(bundled_dir, site_dir):
                 blobs[role] = fetch(url)
                 time.sleep(0.4)
         for role, data in blobs.items():
-            sizes = [(32, role)] + ([(64, "preview")] if role == "arrow" else [])
-            files, steps, hot = export_role(data, name, outdir, role, sizes)
+            sizes = [(32, role)] + ([(96, "preview")] if role == "arrow" else [])
+            files, steps, hot, blocky = export_role(data, name, outdir, role, sizes)
             entry["roles"][role] = {"frames": files[role], "steps": steps, "hx": hot[0], "hy": hot[1]}
             if role == "arrow":
-                entry["preview"] = {"frames": files["preview"], "steps": steps}
+                # pixelated: the preview was blown up from a smaller cursor, so the page keeps its pixels hard
+                entry["preview"] = {"frames": files["preview"], "steps": steps, "pixelated": "preview" in blocky}
         entry["animated"] = any(len(r["steps"]) > 1 for r in entry["roles"].values())
         manifest.append(entry)
         print(f"{pid:12} {name:26} roles={','.join(entry['roles'])} animated={entry['animated']} frames={len(entry['roles']['arrow']['frames'])}")

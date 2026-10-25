@@ -219,7 +219,8 @@ window.CURSOR_PACKS = [
      8,
      100
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -761,7 +762,8 @@ window.CURSOR_PACKS = [
      24,
      33
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -1173,7 +1175,8 @@ window.CURSOR_PACKS = [
      17,
      167
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -1930,7 +1933,8 @@ window.CURSOR_PACKS = [
      49,
      50
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -2597,7 +2601,8 @@ window.CURSOR_PACKS = [
      33,
      33
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -2889,7 +2894,8 @@ window.CURSOR_PACKS = [
      11,
      33
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -3041,7 +3047,8 @@ window.CURSOR_PACKS = [
      0,
      333
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -3197,7 +3204,8 @@ window.CURSOR_PACKS = [
      5,
      83
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -3259,7 +3267,8 @@ window.CURSOR_PACKS = [
      0,
      0
     ]
-   ]
+   ],
+   "pixelated": false
   },
   "animated": false
  },
@@ -3321,7 +3330,8 @@ window.CURSOR_PACKS = [
      0,
      0
     ]
-   ]
+   ],
+   "pixelated": false
   },
   "animated": false
  },
@@ -3383,7 +3393,8 @@ window.CURSOR_PACKS = [
      0,
      0
     ]
-   ]
+   ],
+   "pixelated": false
   },
   "animated": false
  },
@@ -3745,7 +3756,8 @@ window.CURSOR_PACKS = [
      15,
      167
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -4172,7 +4184,8 @@ window.CURSOR_PACKS = [
      0,
      83
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -4234,7 +4247,8 @@ window.CURSOR_PACKS = [
      0,
      0
     ]
-   ]
+   ],
+   "pixelated": false
   },
   "animated": false
  },
@@ -4296,7 +4310,8 @@ window.CURSOR_PACKS = [
      0,
      0
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": false
  },
@@ -4988,7 +5003,8 @@ window.CURSOR_PACKS = [
      39,
      33
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -5200,7 +5216,8 @@ window.CURSOR_PACKS = [
      6,
      167
     ]
-   ]
+   ],
+   "pixelated": true
   },
   "animated": true
  },
@@ -5262,7 +5279,8 @@ window.CURSOR_PACKS = [
      0,
      0
     ]
-   ]
+   ],
+   "pixelated": false
   },
   "animated": false
  },
@@ -5324,7 +5342,8 @@ window.CURSOR_PACKS = [
      0,
      0
     ]
-   ]
+   ],
+   "pixelated": false
   },
   "animated": false
  }

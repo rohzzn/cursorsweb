@@ -11,7 +11,6 @@
     bear: '#C8A27A', bunny: '#F9A8D4', banana: '#FACC15', mocha: '#CBA6F7', magenta: '#FF2BD6', bluefire: '#22D3EE',
     purple: '#C026D3', pixel: '#9CA3AF', terminal: '#22C55E', steampunk: '#C08A2E', space: '#8B5CF6', macos: '#9CA3AF', ghost: '#9CA3AF',
   };
-  const PIXEL_ART = new Set(['pixel', 'terminal', 'bear', 'bunny', 'space', 'glitch']);
   const STORE = 'cursors-pack';
 
   const root = document.documentElement;
@@ -49,7 +48,6 @@
     stop(img);
     const pv = pack.preview;
     img.src = src(pack, pv.frames[pv.steps[0][0]]);
-    img.classList.toggle('pixel', PIXEL_ART.has(pack.id));
     if (pv.steps.length < 2 || still) return;
     let i = 0;
     const tick = () => {
@@ -62,42 +60,46 @@
   }
   function stop(img) { clearTimeout(players.get(img)); players.delete(img); }
 
-  // ── the picker ──
+  // ── the picker: one numbered cell per pack, in vibe order, then your own cursor ──
 
-  const vibes = document.getElementById('vibes');
+  const grid = document.getElementById('packs');
+  const ordered = VIBES.flatMap((vibe) => PACKS.filter((p) => p.vibe === vibe));
   const cards = [];
-  for (const vibe of VIBES) {
-    const group = document.createElement('div');
-    group.className = 'vibe';
-    group.innerHTML = `<h3>${vibe}</h3><div class="cards"></div>`;
-    const row = group.querySelector('.cards');
-    for (const pack of PACKS.filter((p) => p.vibe === vibe)) {
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'card';
-      card.dataset.pack = pack.id;
-      card.setAttribute('aria-pressed', 'false');
-      card.innerHTML = `<span class="face"><img alt="" width="64" height="64"></span>` +
-        `<span><span class="name"></span><br><span class="by"></span></span>`;
-      card.querySelector('.name').textContent = pack.name;
-      card.querySelector('.by').textContent = `${pack.animated ? 'animated · ' : ''}by ${pack.author.split(/[;,]/)[0]}`;
-      card.setAttribute('aria-label', `Wear ${pack.name} by ${pack.author}`);
-      card.addEventListener('click', () => wear(pack.id));
-      row.appendChild(card);
-      cards.push([card, pack]);
-    }
-    if (vibe === 'Clean') {
-      const own = document.createElement('button');
-      own.type = 'button';
-      own.className = 'card own';
-      own.dataset.pack = '';
-      own.setAttribute('aria-pressed', 'true');
-      own.innerHTML = '<span class="face"><span class="mono" style="font-size:12px">your own</span></span><span><span class="name">Your cursor</span><br><span class="by">back to normal</span></span>';
-      own.addEventListener('click', () => wear(''));
-      row.appendChild(own);
-    }
-    vibes.appendChild(group);
+
+  function cell(no, tag, name, by) {
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'cell';
+    el.setAttribute('aria-pressed', 'false');
+    el.innerHTML = '<span class="top"><span class="no"></span><span class="tag"></span></span>' +
+      '<span class="face"></span><span><span class="name"></span><span class="by"></span></span>';
+    el.querySelector('.no').textContent = no;
+    el.querySelector('.tag').textContent = tag;
+    el.querySelector('.name').textContent = name;
+    el.querySelector('.by').textContent = by;
+    grid.appendChild(el);
+    return el;
   }
+
+  ordered.forEach((pack, i) => {
+    const el = cell(String(i + 1).padStart(2, '0'), pack.vibe, pack.name, `by ${pack.author.split(/[;,]/)[0].trim()}`);
+    el.dataset.pack = pack.id;
+    el.setAttribute('aria-label', `Wear ${pack.name} by ${pack.author}`);
+    const img = document.createElement('img');
+    img.alt = '';
+    img.width = img.height = 96;
+    img.className = pack.preview.pixelated ? 'pixelated' : '';
+    img.src = src(pack, pack.preview.frames[0]);
+    el.querySelector('.face').appendChild(img);
+    el.addEventListener('click', () => wear(pack.id));
+    cards.push([el, pack]);
+  });
+
+  const own = cell('00', 'Default', 'Your cursor', 'back to normal');
+  own.dataset.pack = '';
+  own.setAttribute('aria-pressed', 'true');
+  own.querySelector('.face').innerHTML = '<svg width="52" height="52" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 2 L4 25 L9.5 19.8 L13.5 28.5 L17.6 26.7 L13.7 18.2 L21 18.2 Z" fill="#FFFFFF" stroke="#0E0E0E" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  own.addEventListener('click', () => wear(''));
 
   // card previews only play while they are on screen
   const watch = new IntersectionObserver((entries) => {
@@ -108,12 +110,7 @@
       else stop(img);
     }
   });
-  for (const [card, pack] of cards) {
-    const img = card.querySelector('img');
-    img.src = src(pack, pack.preview.frames[0]);
-    img.classList.toggle('pixel', PIXEL_ART.has(pack.id));
-    watch.observe(card);
-  }
+  for (const [card] of cards) watch.observe(card);
 
   // ── wearing ──
 
@@ -138,9 +135,9 @@
   // ── the credits table ──
 
   const credits = document.getElementById('credits');
-  for (const pack of PACKS) {
+  ordered.forEach((pack, i) => {
     const tr = document.createElement('tr');
-    const cells = [pack.name, pack.vibe, pack.author, pack.license];
+    const cells = [String(i + 1).padStart(2, '0'), pack.name, pack.vibe, pack.author, pack.license];
     for (const text of cells) {
       const td = document.createElement('td');
       td.textContent = text;
@@ -153,7 +150,7 @@
     td.appendChild(a);
     tr.appendChild(td);
     credits.appendChild(tr);
-  }
+  });
 
   let saved = '';
   try { saved = localStorage.getItem(STORE) || ''; } catch { /* private mode */ }
