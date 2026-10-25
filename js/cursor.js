@@ -115,30 +115,6 @@
     watch.observe(card);
   }
 
-  // ── the stage in the hero: a slideshow of packs until you wear one ──
-
-  const stage = document.getElementById('stage');
-  const stageImg = stage.querySelector('img');
-  const stageName = stage.querySelector('[data-name]');
-  const stageHint = stage.querySelector('[data-hint]');
-  let shown = null;
-  let slideshow = 0;
-
-  function showOnStage(pack, hint) {
-    shown = pack;
-    play(stageImg, pack);
-    stageName.textContent = pack.name;
-    stageHint.textContent = hint;
-  }
-  function startSlideshow() {
-    clearInterval(slideshow);
-    let i = 0;
-    const next = () => { showOnStage(PACKS[i % PACKS.length], 'click to wear it'); i++; };
-    next();
-    if (!still) slideshow = setInterval(next, 1800);
-  }
-  stage.addEventListener('click', () => { if (shown) wear(shown.id); });
-
   // ── wearing ──
 
   const pillName = document.querySelector('[data-wearing]');
@@ -153,13 +129,7 @@
     for (const el of document.querySelectorAll('[data-pack]')) {
       el.setAttribute('aria-pressed', String(el.dataset.pack === (pack ? pack.id : '')));
     }
-    if (pack) {
-      clearInterval(slideshow);
-      showOnStage(pack, `by ${pack.author.split(/[;,]/)[0]}`);
-      pillName.textContent = pack.name;
-    } else {
-      startSlideshow();
-    }
+    if (pack) pillName.textContent = pack.name;
     if (remember) {
       try { pack ? localStorage.setItem(STORE, pack.id) : localStorage.removeItem(STORE); } catch { /* private mode */ }
     }
@@ -188,5 +158,4 @@
   let saved = '';
   try { saved = localStorage.getItem(STORE) || ''; } catch { /* private mode */ }
   if (byId(saved)) wear(saved, false);
-  else startSlideshow();
 })();
